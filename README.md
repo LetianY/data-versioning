@@ -1,9 +1,14 @@
-# Tutorial (T7):  Data Versioning Demo
+# Data Versioning
 
-In this tutorial, we will cover data versioning techniques using the cheese app dataset. Everything will be run inside containers using Docker.
+For data versioning, everything will be run inside containers using Docker, except that you need to config your git in VM first before building the image. For Windows user, it's recommended that you use wsl ubuntu.
+
+```
+git config --global user.name "your_username"
+git config --global user.email "your_email"
+```
 
 ## Prerequisites
-* Have tha latest Docker installed
+* Have the latest Docker installed
 
 ## Make sure we do not have any running containers and clear up an unused images
 * Run `docker container ls`
@@ -12,35 +17,29 @@ In this tutorial, we will cover data versioning techniques using the cheese app 
 * Run `docker image ls`
 
 ### Clone the github repository
-* Cloned  repository from [here](https://github.com/dlops-io/data-versioning) to your local machine 
-
 Your folder structure should look like this:
 ```
    |-data-versioning
    |-secrets
 ```
-Download the json file and place inside the secrets folder:
-<a href="https://static.us.edusercontent.com/files/mlca0YEYdvkWPNEowJ0o4hOd" download>mega-pipeline.json</a>
-
 
 ### Create a Data Store folder in GCS Bucket
 - Go to `https://console.cloud.google.com/storage/browser`
-- Go to the bucket `cheese-app-data-versioning` (REPLACE WITH YOUR BUCKET NAME)
+- Go to the bucket `headline-scraper-bucket` (REPLACE WITH YOUR BUCKET NAME)
 - Create a folder `dvc_store` inside the bucket
-- Create a folder `images` inside the bucket (This is where we will store the images that need to be versioned)
+- Create a folder `stock-universe/`, `llm-rag-prompts/`, `llm-finetuning-data` inside the bucket 
 
 ## Run DVC Container
 We will be using [DVC](https://dvc.org/) as our data versioning tool. DVC (Data Version Control) is an open-source, Git-based data science tool. It applies version control to machine learning development, make your repo the backbone of your project.
 
 ### Setup DVC Container Parameters
-In order for the DVC container to connect to our GCS Bucket open the file `docker-shell.sh` and edit some of the values to match your setup
+In order for the DVC container to connect to the GCS Bucket open the file `docker-shell.sh` and edit:
 ```
-export GCS_BUCKET_NAME="cheese-app-data-versioning" [REPLACE WITH YOUR BUCKET NAME]
-export GCP_PROJECT="ac215-project" [REPLACE WITH YOUR GCP PROJECT]
-export GCP_ZONE="us-central1-a"
-
-
+export GCS_BUCKET_NAME="headline-scraper-bucket" [REPLACE WITH YOUR BUCKET NAME]
+export GCP_PROJECT="ac215-438007" [REPLACE WITH YOUR GCP PROJECT ID]
+export GCP_ZONE="us-east1"
 ```
+
 ### Note: Addition of `docker-entrypoint.sh`
 Note that we have added a new file called `docker-entrypoint.sh` to our development flow. A `docker-entrypoint.sh` is used to simplify some task when running containers such as:
 * Helps with Initialization and Setup: 
@@ -52,25 +51,26 @@ Note that we have added a new file called `docker-entrypoint.sh` to our developm
 
 For this container we need to:
 * Mount a GCS bucket to a volume mount in the container
-* We then mount the "images" folder in the bucket mount to the "/app/cheese_dataset" folder
+* We then mount the folders in the bucket to the folders under "/app/"
 
 ### Run `docker-shell.sh`
 - Make sure you are inside the `data-versioning` folder and open a terminal at this location
+- For windows user, run "sudo apt-get install dos2unix" (then type in your password) and then "dos2unix docker-shell.sh", "dos2unix docker-entrypoint.sh" first.
 - Run `sh docker-shell.sh`  
-
 
 ### Version Data using DVC
 In this step we will start tracking the dataset using DVC
 
 #### Initialize Data Registry
 In this step we create a data registry using DVC
-`dvc init`
+
+`dvc init -f`
 
 #### Add Remote Registry to GCS Bucket (For Data)
-`dvc remote add -d cheese_dataset gs://cheese-app-data-versioning/dvc_store`
+`dvc remote add -d news_dataset_dvc gs://headline-scraper-bucket/dvc_store`
 
 #### Add the dataset to registry
-`dvc add cheese_dataset`
+`dvc add news_dataset_dvc`
 
 #### Push to Remote Registry
 `dvc push`
@@ -80,7 +80,7 @@ You can go to your GCS Bucket folder `dvs_store` to view the tracking files
 
 #### Update Git to track DVC 
 Run this outside the container. 
-- First run git status `git status`
+- First run git status `git status`; if there's an issue try `git config --global --add safe.directory /app`
 - Add changes `git add .`
 - Commit changes `git commit -m 'dataset updates...'`
 - Add a dataset tag `git tag -a 'dataset_v20' -m 'tag dataset'`
@@ -94,11 +94,10 @@ In this Step we will use Colab to view various version of the dataset
 
 ## Make changes to data
 
-### Upload images
-- Upload a few more images to the `images` folder in your bucket (We are simulating some change in data)
+### Update bucket
 
 #### Add the dataset (changes) to registry
-`dvc add cheese_dataset`
+`dvc add news_dataset_dvc`
 
 #### Push to Remote Registry
 `dvc push`

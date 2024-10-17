@@ -1,4 +1,4 @@
 [core]
-    remote = cheese_dataset
-['remote "cheese_dataset"']
-    url = gs://cheese-app-data-versioning/dvc_store
+    remote = news_dataset_dvc
+['remote "news_dataset_dvc"']
+    url = gs://headline-scraper-bucket/dvc_store

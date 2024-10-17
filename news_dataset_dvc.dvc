@@ -1,0 +1,6 @@
+outs:
+- md5: 7e2f53ab962703450bab439be3481cdc.dir
+  size: 9907
+  nfiles: 2
+  hash: md5
+  path: news_dataset_dvc
