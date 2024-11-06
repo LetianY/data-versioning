@@ -4,7 +4,7 @@ echo "Container is running!!!"
 
 
 gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-mkdir -p /mnt/gcs_bucket
+mkdir -p /mnt/gcs_data
 gcsfuse --key-file=$GOOGLE_APPLICATION_CREDENTIALS $GCS_BUCKET_NAME /mnt/gcs_data
 echo 'GCS bucket mounted at /mnt/gcs_data'
 
